@@ -1,14 +1,18 @@
 #ifndef LOAD_CSV_H
+#define LOAD_CSV_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 typedef struct config_s
 {
     size_t n_cols;
     size_t e_size;
+    char del;
     bool first_row;
 } config_t;
 
@@ -16,9 +20,14 @@ FILE *load_csv(const char *fpath);
 char **process_row(char *line, size_t ncols, char del);
 void read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, void *));
 
+#ifndef MAX_ROW_SIZE
 #define MAX_ROW_SIZE 1024
+#endif // MAX_ROW_SIZE
 
-#ifdef LOAD_CSV_H_IMPLEMENTATION
+// IMPLEMENTATION
+#if defined(LOAD_CSV_H_IMPLEMENTATION)
+#define LOAD_CSV_H_IMPLEMENTATION
+
 FILE *load_csv(const char *fpath)
 {
     FILE *fp = fopen(fpath, "rb");
@@ -49,7 +58,7 @@ char **process_row(char *line, size_t ncols, char del)
             value_size = i - start;
             values[j] = (char *)malloc((sizeof(char) * value_size + 1));
 
-            if (!values)
+            if (!values[j])
             {
                 fprintf(stderr, "Failed to malloc\n");
             }
@@ -63,8 +72,10 @@ char **process_row(char *line, size_t ncols, char del)
     return values;
 }
 
-void free_values(config_t c, char **values) {
-    for (size_t i = 0; i < c.n_cols; ++i) {
+void free_values(config_t c, char **values)
+{
+    for (size_t i = 0; i < c.n_cols; ++i)
+    {
         free(values[i]);
     }
     free(values);
@@ -82,7 +93,7 @@ void read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, vo
             c.first_row = false;
             continue;
         }
-        char **values = process_row(line, c.n_cols, ',');
+        char **values = process_row(line, c.n_cols, c.del);
         f(values, (char *)data + (row * c.e_size));
         free_values(c, values);
         row++;
