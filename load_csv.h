@@ -17,8 +17,7 @@ typedef struct config_s
 } config_t;
 
 FILE *load_csv(const char *fpath);
-char **process_row(char *line, size_t ncols, char del);
-void read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, void *));
+size_t read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, void *));
 
 #ifndef MAX_ROW_SIZE
 #define MAX_ROW_SIZE 1024
@@ -27,6 +26,9 @@ void read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, vo
 // IMPLEMENTATION
 #if defined(LOAD_CSV_H_IMPLEMENTATION)
 #define LOAD_CSV_H_IMPLEMENTATION
+
+static void free_values(size_t n_cols, char **values);
+static char **process_row(char *line, size_t ncols, char del);
 
 FILE *load_csv(const char *fpath)
 {
@@ -39,49 +41,7 @@ FILE *load_csv(const char *fpath)
     return fp;
 }
 
-char **process_row(char *line, size_t ncols, char del)
-{
-    char **values = (char **)malloc(sizeof(char *) * ncols);
-    if (!values)
-    {
-        fprintf(stderr, "Failed to malloc\n");
-    }
-
-    size_t j = 0;
-    size_t start = 0;
-    size_t value_size = 0;
-
-    for (size_t i = 0; line[i]; ++i)
-    {
-        if (line[i] == del || line[i] == '\n')
-        {
-            value_size = i - start;
-            values[j] = (char *)malloc((sizeof(char) * value_size + 1));
-
-            if (!values[j])
-            {
-                fprintf(stderr, "Failed to malloc\n");
-            }
-
-            strncpy(values[j], &line[start], value_size);
-            values[j][value_size] = 0;
-            start = i + 1;
-            j++;
-        }
-    }
-    return values;
-}
-
-void free_values(config_t c, char **values)
-{
-    for (size_t i = 0; i < c.n_cols; ++i)
-    {
-        free(values[i]);
-    }
-    free(values);
-}
-
-void read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, void *))
+size_t read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, void *))
 {
     char line[MAX_ROW_SIZE] = {0};
     size_t row = 0;
@@ -95,11 +55,56 @@ void read_csv(FILE *csv, config_t c, void *data, size_t n, void (*f)(char **, vo
         }
         char **values = process_row(line, c.n_cols, c.del);
         f(values, (char *)data + (row * c.e_size));
-        free_values(c, values);
+        free_values(c.n_cols, values);
         row++;
     }
+    return row;
 }
 
+static char **process_row(char *line, size_t ncols, char del)
+{
+    char **values = (char **)malloc(sizeof(char *) * ncols);
+    if (!values)
+    {
+        fprintf(stderr, "Failed to malloc\n");
+        return NULL;
+    }
+
+    size_t j = 0;
+    size_t start = 0;
+    size_t value_size = 0;
+
+    for (size_t i = 0; line[i]; ++i)
+    {
+        if (strchr("\n\r\0", line[i]) || line[i] == del)
+        {
+            value_size = i - start;
+            values[j] = (char *)malloc((sizeof(char) * value_size + 1));
+
+            if (!values[j])
+            {
+                fprintf(stderr, "Failed to malloc\n");
+                free_values(j, values);
+                return NULL;
+            }
+
+            strncpy(values[j], &line[start], value_size);
+            values[j][value_size] = 0;
+            start = i + 1;
+            j++;
+        }
+    }
+    return values;
+}
+
+static void free_values(size_t n_cols, char **values)
+{
+    for (size_t j = 0; j < n_cols; ++j)
+    {
+        free(values[j]);
+    }
+    free(values);
+}
 #endif // LOAD_CSV_H_IMPLEMENTATION
 
 #endif // LOAD_CSV_H
