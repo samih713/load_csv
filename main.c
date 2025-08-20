@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <stdbool.h>
-#include <string.h>
-
 #define LOAD_CSV_H_IMPLEMENTATION
 #include "load_csv.h"
 
@@ -25,7 +19,7 @@ int main()
 {
     point_t points[10];
 
-    config_t c = {.e_size = sizeof(point_t), .n_cols = 2, .first_row = true};
+    config_t c = {.e_size = sizeof(point_t), .n_cols = 2, .first_row = true, .del=','};
 
     const char *csv_path = "data.csv";
     FILE *csv = load_csv(csv_path);
