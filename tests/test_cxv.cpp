@@ -11,10 +11,10 @@ struct pair_t {
   int b;
 };
 
-void set_pair(char** values, void* p) {
-  auto* pair = static_cast<pair_t*>(p);
-  pair->a = atoi(values[0]);
-  pair->b = atoi(values[1]);
+void set_pair(char** values, int row, void* ctx) {
+  auto* pairs = static_cast<pair_t*>(ctx);
+  pairs[row].a = atoi(values[0]);
+  pairs[row].b = atoi(values[1]);
 }
 
 std::string fixture(const char* name) {
@@ -23,7 +23,6 @@ std::string fixture(const char* name) {
 
 cxv_cfg_t cfg(char del, bool first_row, size_t rows, size_t n_cols) {
   return {.n_cols = n_cols,
-          .e_size = sizeof(pair_t),
           .r_to_read = rows,
           .del = del,
           .first_row = first_row};
