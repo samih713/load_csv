@@ -1,4 +1,4 @@
-NAME:= load_csv
+NAME:= cxv
 
 CFLAGS:= -ggdb3 -fsanitize=address -O3
 
