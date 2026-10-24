@@ -40,7 +40,7 @@ int cxv_read(const char* file_path, cxv_cfg_t c, void* data,
   }
 
   char line[CXV_MAX_ROW_SIZE] = {0};
-  size_t processed_row_count = 0;
+  int processed_row_count = 0;
 
   while (fgets(line, CXV_MAX_ROW_SIZE, csv) &&
          processed_row_count < c.r_to_read) {
@@ -50,12 +50,14 @@ int cxv_read(const char* file_path, cxv_cfg_t c, void* data,
     }
     char** values = cxv__split(line, c.n_cols, c.del, processed_row_count);
     if (values == NULL) {
+      fclose(csv);
       return -1;
     }
     f(values, (char*)data + (processed_row_count * c.e_size));
     cxv__free_values(c.n_cols, values);
     processed_row_count++;
   }
+  fclose(csv);
   return processed_row_count;
 }
 
