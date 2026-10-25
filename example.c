@@ -45,10 +45,10 @@ static void print_table(const table_t* t, size_t n_rows);
 
 int main(void) {
   // 3. Configure the read.
-  //    n_cols:    columns every row must have, a mismatch fails the read
-  //    del:       field delimiter
-  //    r_to_read: max rows to read, the header counts as one
-  cxv_cfg_t cfg = {.n_cols = 2, .del = ',', .r_to_read = MAX_ROWS};
+  //    n_cols:   columns every row must have, a mismatch fails the read
+  //    delim:    field delimiter
+  //    max_rows: max rows to read, the header counts as one
+  cxv_cfg_t cfg = {.n_cols = 2, .delim = ',', .max_rows = MAX_ROWS};
 
   // 4. Read. Returns the number of rows passed to the callback, or -1 on
   //    failure (unreadable file, wrong column count, out of memory). The

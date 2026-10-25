@@ -38,8 +38,8 @@ std::string fixture(const char* name) {
   return FIXTURE_DIR + std::string(name);
 }
 
-cxv_cfg_t cfg(char del, int rows, size_t n_cols) {
-  return {.n_cols = n_cols, .r_to_read = rows, .del = del};
+cxv_cfg_t cfg(char delim, int rows, size_t n_cols) {
+  return {.n_cols = n_cols, .max_rows = rows, .delim = delim};
 }
 
 }  // namespace
@@ -61,7 +61,7 @@ TEST_CASE("cxv_read basic parsing", "[cxv]") {
     CHECK(cxv_read(path.c_str(), cfg(',', 5, 2), out, set_pair) == 2);
   }
 
-  SECTION("r_to_read limits the rows") {
+  SECTION("max_rows limits the rows") {
     auto path = fixture("three_rows.csv");
     CHECK(cxv_read(path.c_str(), cfg(',', 2, 2), out, set_pair) == 2);
   }
@@ -88,7 +88,7 @@ TEST_CASE("cxv_read header row", "[cxv]") {
     CHECK(table.rows[1].b == 4);
   }
 
-  SECTION("r_to_read counts the header row") {
+  SECTION("max_rows counts the header row") {
     auto path = fixture("header.csv");
     REQUIRE(cxv_read(path.c_str(), cfg(',', 1, 2), &table, set_table) == 1);
     CHECK(table.headers[0] == "x");
