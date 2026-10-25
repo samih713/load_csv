@@ -1,9 +1,9 @@
-NAME:= cxv
+NAME:= example
 
 CFLAGS:= -ggdb3 -fsanitize=address -O3
 
 all:
-	cc $(CFLAGS) main.c -o $(NAME)
+	cc $(CFLAGS) example.c -o $(NAME)
 
 run: all
 	./$(NAME)
