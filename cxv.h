@@ -12,7 +12,7 @@ typedef void (*cxv_row_fn)(char**, int row, void*);
 
 typedef struct {
   size_t n_cols;
-  size_t r_to_read;
+  int r_to_read;
   char del;
 } cxv_cfg_t;
 
