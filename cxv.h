@@ -3,6 +3,10 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
 typedef void (*cxv_row_fn)(char**, int row, void*);
 
 typedef struct {
@@ -13,6 +17,10 @@ typedef struct {
 
 // API
 int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f);
+
+#ifdef __cplusplus
+}
+#endif  // __cplusplus
 
 #ifndef CXV_MAX_ROW_SIZE
 #define CXV_MAX_ROW_SIZE 1024
