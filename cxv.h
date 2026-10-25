@@ -1,12 +1,7 @@
 #ifndef CXV_H
 #define CXV_H
 
-#include <errno.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 typedef void (*cxv_row_fn)(char**, int row, void*);
 
@@ -25,6 +20,11 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f);
 
 // IMPLEMENTATION
 #if defined(CXV_IMPLEMENTATION)
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static char** cxv__split(char* line, size_t n_cols, char del,
                          const size_t line_n);
