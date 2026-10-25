@@ -45,8 +45,8 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f) {
     return -1;
   }
 
-  char** cxv__values = (char**)malloc(sizeof *cxv__values * cfg.n_cols);
-  if (!cxv__values) {
+  char** values = (char**)malloc(sizeof *values * cfg.n_cols);
+  if (!values) {
     fprintf(stderr, "Failed to malloc\n");
     fclose(csv);
     return -1;
@@ -57,17 +57,17 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f) {
   while (fgets(line, CXV_MAX_ROW_SIZE, csv) &&
          processed_row_count < cfg.max_rows) {
     int status = cxv__split(line, cfg.n_cols, cfg.delim, processed_row_count,
-                            cxv__values);
+                            values);
 
     if (status < 0) {
-      free(cxv__values);
+      free(values);
       fclose(csv);
       return -1;
     }
-    f(cxv__values, processed_row_count, ctx);
+    f(values, processed_row_count, ctx);
     processed_row_count++;
   }
-  free(cxv__values);
+  free(values);
   fclose(csv);
   return processed_row_count;
 }
@@ -82,7 +82,7 @@ static FILE* cxv__load(const char* fpath) {
 }
 
 static int cxv__split(char* line, size_t n_cols, char delim, size_t line_n,
-                      char** cxv__values) {
+                      char** values) {
   size_t j = 0;
   size_t start = 0;
 
@@ -95,7 +95,7 @@ static int cxv__split(char* line, size_t n_cols, char delim, size_t line_n,
         return -1;
       }
       line[i] = '\0';
-      cxv__values[j] = line + start;
+      values[j] = line + start;
       start = i + 1;
       j++;
     }
