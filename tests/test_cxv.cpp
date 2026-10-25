@@ -38,7 +38,7 @@ std::string fixture(const char* name) {
   return FIXTURE_DIR + std::string(name);
 }
 
-cxv_cfg_t cfg(char del, size_t rows, size_t n_cols) {
+cxv_cfg_t cfg(char del, int rows, size_t n_cols) {
   return {.n_cols = n_cols, .r_to_read = rows, .del = del};
 }
 
@@ -106,8 +106,7 @@ TEST_CASE("cxv_read errors", "[cxv]") {
   pair_t out[1] = {};
 
   SECTION("missing file returns -1") {
-    auto status =
-        cxv_read("does_not_exist.csv", cfg(',', 1, 2), out, set_pair);
+    auto status = cxv_read("does_not_exist.csv", cfg(',', 1, 2), out, set_pair);
     CHECK(status == -1);
   }
 

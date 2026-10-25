@@ -26,7 +26,6 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f);
 // IMPLEMENTATION
 #if defined(CXV_IMPLEMENTATION)
 
-static void cxv__free_values(size_t n_cols, char** values);
 static char** cxv__split(char* line, size_t n_cols, char del,
                          const size_t line_n);
 static FILE* cxv__load(const char* fpath);
@@ -47,7 +46,7 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f) {
       return -1;
     }
     f(values, processed_row_count, ctx);
-    cxv__free_values(cfg.n_cols, values);
+    free(values);
     processed_row_count++;
   }
   fclose(csv);
@@ -73,27 +72,17 @@ static char** cxv__split(char* line, size_t n_cols, char del,
 
   size_t j = 0;
   size_t start = 0;
-  size_t value_size = 0;
 
   for (size_t i = 0; line[i]; ++i) {
     if (strchr("\n\r\0", line[i]) || line[i] == del) {
       if (j >= n_cols) {
         fprintf(stderr, "line %zu: expected %zu columns, found %zu\n", line_n,
                 n_cols, j + 1);
-        cxv__free_values(j, values);
+        free(values);
         return NULL;
       }
-      value_size = i - start;
-      values[j] = (char*)malloc((sizeof(char) * value_size + 1));
-
-      if (!values[j]) {
-        fprintf(stderr, "Failed to malloc\n");
-        cxv__free_values(j, values);
-        return NULL;
-      }
-
-      strncpy(values[j], &line[start], value_size);
-      values[j][value_size] = 0;
+      line[i] = '\0';
+      values[j] = &(line[start]);
       start = i + 1;
       j++;
     }
@@ -101,17 +90,11 @@ static char** cxv__split(char* line, size_t n_cols, char del,
   if (j != n_cols) {
     fprintf(stderr, "line %zu: expected %zu columns, found %zu\n", line_n,
             n_cols, j);
-    cxv__free_values(j, values);
+    free(values);
     return NULL;
   }
   return values;
 }
 
-static void cxv__free_values(size_t n_cols, char** values) {
-  for (size_t j = 0; j < n_cols; ++j) {
-    free(values[j]);
-  }
-  free(values);
-}
 #endif  // CXV__IMPLEMENTATION
 #endif  // CXV_H
