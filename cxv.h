@@ -8,14 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef void (*cxv_row_fn)(char**, int row, void*);
+
 typedef struct {
   size_t n_cols;
   size_t r_to_read;
   char del;
-  bool first_row;
 } cxv_cfg_t;
 
-typedef void (*cxv_row_fn)(char**, int row, void*);
 // API
 int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f);
 
@@ -39,13 +39,8 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f) {
 
   char line[CXV_MAX_ROW_SIZE] = {0};
   int processed_row_count = 0;
-
   while (fgets(line, CXV_MAX_ROW_SIZE, csv) &&
          processed_row_count < cfg.r_to_read) {
-    if (cfg.first_row) {
-      cfg.first_row = false;
-      continue;
-    }
     char** values = cxv__split(line, cfg.n_cols, cfg.del, processed_row_count);
     if (values == NULL) {
       fclose(csv);
