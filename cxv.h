@@ -21,7 +21,7 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f);
 
 #ifndef CXV_MAX_ROW_SIZE
 #define CXV_MAX_ROW_SIZE 1024
-#endif  // MAX_ROW_SIZE
+#endif  // CXV_MAX_ROW_SIZE
 
 // IMPLEMENTATION
 #if defined(CXV_IMPLEMENTATION)
@@ -96,5 +96,5 @@ static char** cxv__split(char* line, size_t n_cols, char del,
   return values;
 }
 
-#endif  // CXV__IMPLEMENTATION
+#endif  // CXV_IMPLEMENTATION
 #endif  // CXV_H
