@@ -25,8 +25,9 @@ typedef struct {
 //    - values: the n_cols fields of this row, as strings
 //    - row:    0 based index, the header is row 0 like any other line
 //    - ctx:    the pointer passed to cxv_read
-//    values is freed by cxv as soon as the callback returns, so copy
-//    anything you want to keep (strdup for strings, atoi/strtol for numbers).
+//    values and the strings it points to are only valid during the callback:
+//    cxv reuses the same buffers for the next row. Don't keep the pointers,
+//    copy what you need (strdup for strings, atoi/strtol for numbers).
 static void set_table(char** values, int row, void* ctx) {
   table_t* table = (table_t*)ctx;
 

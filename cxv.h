@@ -35,7 +35,8 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f);
 #include <stdlib.h>
 #include <string.h>
 
-static char** cxv__split(char* line, size_t n_cols, char delim, size_t line_n);
+static int cxv__split(char* line, size_t n_cols, char delim, size_t line_n,
+                      char** cxv__values);
 static FILE* cxv__load(const char* fpath);
 
 int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f) {
@@ -44,20 +45,29 @@ int cxv_read(const char* file_path, cxv_cfg_t cfg, void* ctx, cxv_row_fn f) {
     return -1;
   }
 
+  char** cxv__values = (char**)malloc(sizeof *cxv__values * cfg.n_cols);
+  if (!cxv__values) {
+    fprintf(stderr, "Failed to malloc\n");
+    fclose(csv);
+    return -1;
+  }
+
   char line[CXV_MAX_ROW_SIZE] = {0};
   int processed_row_count = 0;
   while (fgets(line, CXV_MAX_ROW_SIZE, csv) &&
          processed_row_count < cfg.max_rows) {
-    char** values =
-        cxv__split(line, cfg.n_cols, cfg.delim, processed_row_count);
-    if (values == NULL) {
+    int status = cxv__split(line, cfg.n_cols, cfg.delim, processed_row_count,
+                            cxv__values);
+
+    if (status < 0) {
+      free(cxv__values);
       fclose(csv);
       return -1;
     }
-    f(values, processed_row_count, ctx);
-    free(values);
+    f(cxv__values, processed_row_count, ctx);
     processed_row_count++;
   }
+  free(cxv__values);
   fclose(csv);
   return processed_row_count;
 }
@@ -71,37 +81,31 @@ static FILE* cxv__load(const char* fpath) {
   return fp;
 }
 
-static char** cxv__split(char* line, size_t n_cols, char delim, size_t line_n) {
-  char** values = (char**)malloc(sizeof *values * n_cols);
-  if (!values) {
-    fprintf(stderr, "Failed to malloc\n");
-    return NULL;
-  }
-
+static int cxv__split(char* line, size_t n_cols, char delim, size_t line_n,
+                      char** cxv__values) {
   size_t j = 0;
   size_t start = 0;
 
   for (size_t i = 0; line[i]; ++i) {
-    if (strchr("\n\r\0", line[i]) || line[i] == delim) {
+    char c = line[i];
+    if (c == delim || c == '\n' || c == '\r') {
       if (j >= n_cols) {
         fprintf(stderr, "row %zu: expected %zu columns, found %zu\n", line_n,
                 n_cols, j + 1);
-        free(values);
-        return NULL;
+        return -1;
       }
       line[i] = '\0';
-      values[j] = line + start;
+      cxv__values[j] = line + start;
       start = i + 1;
       j++;
     }
   }
   if (j != n_cols) {
-    fprintf(stderr, "line %zu: expected %zu columns, found %zu\n", line_n,
+    fprintf(stderr, "row %zu: expected %zu columns, found %zu\n", line_n,
             n_cols, j);
-    free(values);
-    return NULL;
+    return -1;
   }
-  return values;
+  return 0;
 }
 
 #endif  // CXV_IMPLEMENTATION
